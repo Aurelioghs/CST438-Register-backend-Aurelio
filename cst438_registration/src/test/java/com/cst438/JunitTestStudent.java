@@ -13,6 +13,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.cst438.domain.ScheduleDTO;
 import com.cst438.domain.StudentDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -112,7 +113,7 @@ public class JunitTestStudent {
 		assertEquals(200, response.getStatus());
 		StudentDTO original = fromJsonString(response.getContentAsString(), StudentDTO.class);
 		// modify name, email and statusCode
-		StudentDTO mod = new StudentDTO(original.student_id(), "new name", "newname@csumb.edu", 1, "balance outstanding");
+		StudentDTO mod = new StudentDTO(original.studentId(), "new name", "newname@csumb.edu", 1, "balance outstanding");
 		response = mvc.perform(
 				MockMvcRequestBuilders
 			      .put("/student/2")

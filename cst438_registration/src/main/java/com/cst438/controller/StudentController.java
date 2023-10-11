@@ -54,7 +54,7 @@ public class StudentController {
 			throw  new ResponseStatusException( HttpStatus.NOT_FOUND, "student not found "+id);
 		}
 	}
-	
+//	updateStudent
 	@PutMapping("/student/{id}") 
 	public void updateStudent(@PathVariable("id")int id, @RequestBody StudentDTO sdto) {
 		Student s = studentRepository.findById(id).orElse(null);
@@ -76,6 +76,8 @@ public class StudentController {
 		s.setStatus(sdto.status());
 		studentRepository.save(s);
 	}
+
+//	Create student
 	
 	@PostMapping("/student")
 	public int createStudent(@RequestBody StudentDTO sdto) {
@@ -93,6 +95,7 @@ public class StudentController {
 		// return the database generated student_id 
 		return s.getStudent_id();
 	}
+//	delete student
 	
 	@DeleteMapping("/student/{id}")
 	public void deleteStudent(@PathVariable("id") int id, @RequestParam("force") Optional<String> force) {

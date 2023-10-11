@@ -25,6 +25,7 @@ public class GradebookServiceREST implements GradebookService {
 
 	@Value("${gradebook.url}")
 	private static String gradebook_url;
+	
 
 	@Override
 	public void enrollStudent(String student_email, String student_name, int course_id) {
@@ -32,7 +33,17 @@ public class GradebookServiceREST implements GradebookService {
 	
 		// TODO use RestTemplate to send message to gradebook service
 		
+		EnrollmentDTO enrollment = new EnrollmentDTO();
+		enrollment.courseId = course_id;
+		enrollment.studentEmail = student_email;
+		enrollment.studentName = student_name;
+		
+		System.out.println("Post to gradebook "+enrollment);
+		EnrollmentDTO response = restTemplate.postForObject (gradebook_url+"/enrollment", enrollment, EnrollmentDTO.class);
+		System.out.println("Gradebook Response: " + response);
 	}
+		
+
 	
 	@Autowired
 	EnrollmentRepository enrollmentRepository;
@@ -45,5 +56,23 @@ public class GradebookServiceREST implements GradebookService {
 		System.out.println("Grades received "+grades.length);
 		
 		//TODO update grades in enrollment records with grades received from gradebook service
+		
+		for (FinalGradeDTO grade : grades) {
+            String studentEmail = grade.studentEmail();
+            double gradeValue = grade.getGrade();
+
+            // Find the enrollment for the student in the specified course
+            Enrollment enrollment = enrollmentRepository.findByCourseIdAndStudentEmail(course_id, studentEmail);
+
+            if (enrollment != null) {
+                // Update the course grade for the enrollment
+                enrollment.setCourseGrade(gradeValue);
+                enrollmentRepository.save(enrollment);
+            } else {
+                System.out.println("Enrollment not found for Student Email: " + studentEmail + " Course ID: " + course_id);
+                // Handle the case where the enrollment doesn't exist
+            }
+        }
+		
 	}
 }
