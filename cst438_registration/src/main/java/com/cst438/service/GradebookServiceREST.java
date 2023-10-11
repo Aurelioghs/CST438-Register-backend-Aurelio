@@ -70,7 +70,7 @@ public class GradebookServiceREST implements GradebookService {
                 enrollmentRepository.save(enrollment);
             } else {
                 System.out.println("Enrollment not found for Student Email: " + studentEmail + " Course ID: " + course_id);
-                // Handle the case where the enrollment doesn't exist
+                
             }
         }
 		

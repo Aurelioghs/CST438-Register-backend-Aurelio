@@ -46,7 +46,6 @@ public class GradebookServiceMQ implements GradebookService {
 	        rabbitTemplate.convertAndSend(gradebookQueue.getName(), enrollment);
 	        System.out.println("Message sent to gradebook " + student_email + " " + course_id);
 	    } catch (AmqpException e) {
-	        // Handle the exception, e.g., log it or perform some error handling.
 	        System.err.println("Error sending enrollment message: " + e.getMessage());
 	    }
 	}
