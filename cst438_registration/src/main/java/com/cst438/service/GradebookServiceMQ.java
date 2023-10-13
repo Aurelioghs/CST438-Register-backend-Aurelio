@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,12 @@ public class GradebookServiceMQ implements GradebookService {
 	
 	Queue gradebookQueue = new Queue("gradebook-queue", true);
 	
+	
 
+	 @Bean
+	 Queue createQueue() {
+	 return new Queue("registration-queue");
+	 }
 
 	// send message to grade book service about new student enrollment in course
 	@Override
@@ -42,8 +48,9 @@ public class GradebookServiceMQ implements GradebookService {
 	 // create EnrollmentDTO, convert to JSON string and send to gradebookQueue
 	 		// TODO
 	    try {
-	        EnrollmentDTO enrollment = new EnrollmentDTO(student_email, student_name, course_id);
-	        rabbitTemplate.convertAndSend(gradebookQueue.getName(), enrollment);
+	        EnrollmentDTO enrollment = new EnrollmentDTO(0, student_email, student_name, course_id);
+	        String json = asJsonString(enrollment);
+	        rabbitTemplate.convertAndSend(gradebookQueue.getName(), json);
 	        System.out.println("Message sent to gradebook " + student_email + " " + course_id);
 	    } catch (AmqpException e) {
 	        System.err.println("Error sending enrollment message: " + e.getMessage());
@@ -57,7 +64,7 @@ public class GradebookServiceMQ implements GradebookService {
 	    System.out.println("Receive grades: " + message);
 	    
 	 
-	    FinalGradeDTO[] finalGradeDTO = null;
+	    FinalGradeDTO[] finalGradeDTO = fromJsonString(message, FinalGradeDTO[].class) ;
 	    
 	    // Loop through the grades and update student grades
 	    for (FinalGradeDTO grade : finalGradeDTO) {
