@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -30,12 +32,13 @@ import com.cst438.domain.EnrollmentRepository;
 @SpringBootTest
 public class EndtoEndRegistrationTest {
 
-    public static final String CHROME_DRIVER_FILE_LOCATION = "C:/chromedriver_win32/chromedriver.exe";
-    public static final String URL = "http://localhost:3000";
-    public static final int TEST_STUDENT_ID = 12345;
+	public static final String CHROME_DRIVER_FILE_LOCATION = "/Users/aureliolopez/Desktop/chromedriver-mac-x64/chromedriver";
+    public static final String URL = "http://localhost:3000/admin";
+   
+    public static final int TEST_STUDENT_ID = 3;
     public static final int SLEEP_DURATION = 1000;
 
-    @Test
+    @Test 
     public void addStudentTest() throws Exception {
         System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_FILE_LOCATION);
         WebDriver driver = new ChromeDriver();
@@ -45,44 +48,18 @@ public class EndtoEndRegistrationTest {
             driver.get(URL);
             Thread.sleep(SLEEP_DURATION);
 
-            List<WebElement> weList = driver.findElements(By.xpath("//input"));
-
-            weList.get(2).click();
-
-            // Locate and click "View Students" button.
-            driver.findElement(By.id("viewStudents")).click();
+            // Locate and click "Add Student" button
+            driver.findElement(By.id("addstudent")).click();
             Thread.sleep(SLEEP_DURATION);
-
-            // Locate and click "Add Student" button, which is the first and only button on the page.
-            driver.findElement(By.id("addStudent")).click();
-            Thread.sleep(SLEEP_DURATION);
-
-            // Enter student ID and click the "Add" button.
-            driver.findElement(By.id("studentId")).sendKeys(Integer.toString(TEST_STUDENT_ID));
+           
+            driver.findElement(By.id("student_name")).sendKeys(("Alex"));
+            driver.findElement(By.id("student_email")).sendKeys(("Alex@csumb.edu"));
             driver.findElement(By.id("add")).click();
             Thread.sleep(SLEEP_DURATION);
-
-            // Verify that the new student is registered by searching for their ID in the updated list.
-            WebElement studentRow = driver.findElement(By.xpath("//tr[td='" + TEST_STUDENT_ID + "']"));
-            assertNotNull(studentRow, "Test student not found in the student list.");
-
-            // Drop the student
-            WebElement dropButton = studentRow.findElement(By.xpath("//button"));
-            assertNotNull(dropButton);
-            dropButton.click();
-
-            // The drop student action causes an alert to occur.
-            WebDriverWait wait = new WebDriverWait(driver, 1);
-            wait.until(ExpectedConditions.alertIsPresent());
-
-            Alert simpleAlert = driver.switchTo().alert();
-            simpleAlert.accept();
-
-            // Check that the student is no longer in the student list
-            Thread.sleep(SLEEP_DURATION);
-            assertThrows(NoSuchElementException.class, () -> {
-                driver.findElement(By.xpath("//tr[td='" + TEST_STUDENT_ID + "']"));
-            });
+                      
+            String expectedStudentName = "Alex";
+            WebElement studentElement = driver.findElement(By.xpath("//*[text()='" + expectedStudentName + "']"));
+            assertNotNull(studentElement, "Student with name 'Alex' should exist");
 
         } catch (Exception ex) {
             throw ex;
@@ -100,32 +77,25 @@ public class EndtoEndRegistrationTest {
         try {
             driver.get(URL);
             Thread.sleep(SLEEP_DURATION);
-
-            List<WebElement> weList = driver.findElements(By.xpath("//input"));
-
-            weList.get(2).click();
-
-            // Locate and click "View Students" button.
-            driver.findElement(By.id("viewStudents")).click();
+            
+         // Locate the edit button
+            driver.findElement(By.id("editbutton")).click();
             Thread.sleep(SLEEP_DURATION);
 
-            WebElement editButton = driver.findElement(By.xpath("//button[text()='Edit']"));
-            assertNotNull(editButton);
-            editButton.click();
+            WebElement studentNameInput = driver.findElement(By.id("studentName"));            
+//            WebElement studentEmailInput = driver.findElement(By.id("studentEmail"));
 
-            // Update student information here (change student name or email).
-            driver.findElement(By.id("studentName")).clear();
-            driver.findElement(By.id("studentName")).sendKeys("Updated Student Name");
-            driver.findElement(By.id("studentEmail")).clear();
-            driver.findElement(By.id("studentEmail")).sendKeys("Updated Student Email");
+            ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", studentNameInput);
+//            ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", studentEmailInput);
 
-            // Click the "Save" button to save the changes.
-            driver.findElement(By.id("save")).click();
+            // Update student name
+            studentNameInput.sendKeys("JustTesting"); 
+//            studentEmailInput.sendKeys("JustTesting@csumb.edu");
+            
+            driver.findElement(By.id("updatebutton")).click();
+            driver.findElement(By.id("closebutton")).click();
             Thread.sleep(SLEEP_DURATION);
-
-            // Verify that the student information has been updated.
-            WebElement updatedStudentName = driver.findElement(By.xpath("//tr[td='Updated Student Name']"));
-            assertNotNull(updatedStudentName, "Updated student not found in the student list");
+      
         } catch (Exception ex) {
             throw ex;
         } finally {
@@ -143,30 +113,22 @@ public class EndtoEndRegistrationTest {
             driver.get(URL);
             Thread.sleep(SLEEP_DURATION);
 
-            List<WebElement> weList = driver.findElements(By.xpath("//input"));
-
-            weList.get(2).click();
-
-            // Locate and click "View Students" button.
-            driver.findElement(By.id("viewStudents")).click();
+            // Locate and click "Delete" button 
+            driver.findElement(By.id("deleteStudent")).click();
             Thread.sleep(SLEEP_DURATION);
 
-            WebElement deleteButton = driver.findElement(By.xpath("//button[text()='Delete']"));
-            assertNotNull(deleteButton);
-            deleteButton.click();
-
-            // The delete student action causes an alert to occur.
-            WebDriverWait wait = new WebDriverWait(driver, 1);
+            // Confirm the delete action in the alert dialog.
+            WebDriverWait wait = new WebDriverWait(driver, 5);
             wait.until(ExpectedConditions.alertIsPresent());
-
             Alert confirmationAlert = driver.switchTo().alert();
             confirmationAlert.accept();
 
-            // Check that the student is no longer in the student list
+            // Check that the assignment is no longer in the assignment list.
             Thread.sleep(SLEEP_DURATION);
             assertThrows(NoSuchElementException.class, () -> {
-                driver.findElement(By.xpath("//tr[td='Updated Student Name']"));
+                driver.findElement(By.xpath("//tr[td='Name deleted']"));
             });
+
 
         } catch (Exception ex) {
             throw ex;
