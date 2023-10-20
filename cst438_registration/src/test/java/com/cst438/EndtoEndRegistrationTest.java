@@ -143,9 +143,6 @@ public class EndtoEndRegistrationTest {
             wait.until(ExpectedConditions.alertIsPresent());
             Alert confirmationAlert = driver.switchTo().alert();
             confirmationAlert.accept();
-
-            // Check that the assignment is no longer in the assignment list.
-//            Thread.sleep(SLEEP_DURATION);
             
             WebDriverWait wait2 = new WebDriverWait(driver, 5); 
             WebElement row = wait2.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[1]/td[2]")));
