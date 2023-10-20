@@ -125,13 +125,7 @@ public class EndtoEndRegistrationTest {
             driver.findElement(By.id("student_name")).sendKeys(("Alex"));
             driver.findElement(By.id("student_email")).sendKeys(("Alex@csumb.edu"));
             driver.findElement(By.id("add")).click();
-            Thread.sleep(SLEEP_DURATION);
-            
-            
-            
-            // Locate and click "Delete" button 
-//            driver.findElement(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[4]/td[7]")).click();
-//            Thread.sleep(SLEEP_DURATION);
+            Thread.sleep(SLEEP_DURATION);          
             
             WebDriverWait waitDeleteButton = new WebDriverWait(driver, 10); 
             WebElement deleteButton = waitDeleteButton.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[4]/td[7]")));
