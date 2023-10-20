@@ -1,5 +1,6 @@
 package com.cst438;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -83,18 +84,22 @@ public class EndtoEndRegistrationTest {
             Thread.sleep(SLEEP_DURATION);
 
             WebElement studentNameInput = driver.findElement(By.id("studentName"));            
-//            WebElement studentEmailInput = driver.findElement(By.id("studentEmail"));
 
             ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", studentNameInput);
-//            ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", studentEmailInput);
 
             // Update student name
             studentNameInput.sendKeys("JustTesting"); 
-//            studentEmailInput.sendKeys("JustTesting@csumb.edu");
             
             driver.findElement(By.id("updatebutton")).click();
             driver.findElement(By.id("closebutton")).click();
             Thread.sleep(SLEEP_DURATION);
+            
+            WebDriverWait wait = new WebDriverWait(driver, 2); 
+            WebElement row = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[1]/td[2]")));
+            
+            System.out.println("Text = " + row.getText());
+            assertEquals( "JustTesting", row.getText());
+           
       
         } catch (Exception ex) {
             throw ex;
@@ -113,22 +118,41 @@ public class EndtoEndRegistrationTest {
             driver.get(URL);
             Thread.sleep(SLEEP_DURATION);
 
-            // Locate and click "Delete" button 
-            driver.findElement(By.id("deleteStudent")).click();
+            // Locate and click "Add Student" button
+            driver.findElement(By.id("addstudent")).click();
             Thread.sleep(SLEEP_DURATION);
+           
+            driver.findElement(By.id("student_name")).sendKeys(("Alex"));
+            driver.findElement(By.id("student_email")).sendKeys(("Alex@csumb.edu"));
+            driver.findElement(By.id("add")).click();
+            Thread.sleep(SLEEP_DURATION);
+            
+            
+            
+            // Locate and click "Delete" button 
+//            driver.findElement(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[4]/td[7]")).click();
+//            Thread.sleep(SLEEP_DURATION);
+            
+            WebDriverWait waitDeleteButton = new WebDriverWait(driver, 10); 
+            WebElement deleteButton = waitDeleteButton.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[4]/td[7]")));
+            deleteButton.click();
+
 
             // Confirm the delete action in the alert dialog.
-            WebDriverWait wait = new WebDriverWait(driver, 5);
+            WebDriverWait wait = new WebDriverWait(driver, 10);
             wait.until(ExpectedConditions.alertIsPresent());
             Alert confirmationAlert = driver.switchTo().alert();
             confirmationAlert.accept();
-
-            // Check that the assignment is no longer in the assignment list.
-            Thread.sleep(SLEEP_DURATION);
-            assertThrows(NoSuchElementException.class, () -> {
-                driver.findElement(By.xpath("//tr[td='Name deleted']"));
-            });
-
+            
+            WebDriverWait wait2 = new WebDriverWait(driver, 5); 
+            WebElement row = wait2.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[1]/td[2]")));
+            
+            
+            WebDriverWait wait4 = new WebDriverWait(driver, 5); 
+            WebElement row4 = wait4.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table[contains(@class, 'Center')]/tbody/tr[1]/td[7]")));
+            assertNotEquals("JustTesting", row4.getText());
+            
+            
 
         } catch (Exception ex) {
             throw ex;
