@@ -132,7 +132,7 @@ public class EndtoEndRegistrationTest {
             deleteButton.click();
 
 
-            // Confirm the delete action in the alert dialog.
+            // Confirm the delete action in the alert dialog
             WebDriverWait wait = new WebDriverWait(driver, 10);
             wait.until(ExpectedConditions.alertIsPresent());
             Alert confirmationAlert = driver.switchTo().alert();
