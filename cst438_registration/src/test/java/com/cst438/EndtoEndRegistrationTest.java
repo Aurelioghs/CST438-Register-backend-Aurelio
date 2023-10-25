@@ -87,7 +87,7 @@ public class EndtoEndRegistrationTest {
 
             ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", studentNameInput);
 
-            // Update student name
+            // update student name
             studentNameInput.sendKeys("JustTesting"); 
             
             driver.findElement(By.id("updatebutton")).click();
