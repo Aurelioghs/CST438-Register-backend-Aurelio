@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cst438.domain.User;
+import com.cst438.domain.UserRepository;
 import com.cst438.dto.AccountCredentials;
 import com.cst438.service.JwtService;
+
+
 
 
 @RestController
@@ -23,6 +27,9 @@ public class LoginController {
 
 	@Autowired	
 	AuthenticationManager authenticationManager;
+	
+	@Autowired
+	UserRepository userRepository;
 
 	@RequestMapping(value="/login", method=RequestMethod.POST)
 	public ResponseEntity<?> getToken(@RequestBody AccountCredentials credentials) {
@@ -35,12 +42,16 @@ public class LoginController {
 
 		// Generate token
 		String jwts = jwtService.getToken(auth.getName());
-
+		
+		User user = userRepository.findByUsername(credentials.username());
+		
+		
+		
 		// Build response with the generated token
 		return ResponseEntity.ok()
 				.header(HttpHeaders.AUTHORIZATION, "Bearer " + jwts)
 				.header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Authorization")
-				.build();
+				.body(user.getRole());
 
 	}
 }
