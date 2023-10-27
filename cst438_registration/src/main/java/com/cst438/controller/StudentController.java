@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,6 +23,8 @@ import com.cst438.domain.EnrollmentRepository;
 import com.cst438.domain.Student;
 import com.cst438.domain.StudentDTO;
 import com.cst438.domain.StudentRepository;
+import com.cst438.domain.User;
+import com.cst438.domain.UserRepository;
 
 @RestController
 @CrossOrigin 
@@ -33,8 +36,27 @@ public class StudentController {
 	@Autowired
 	EnrollmentRepository enrollmentRepository;
 	
+	@Autowired
+	UserRepository userRepository;
+	
 	@GetMapping("/student")
-	public StudentDTO[] getStudents() {
+//	principal -send by front end
+	public StudentDTO[] getStudents(Principal principal) {
+		String username = principal.getName();
+		
+		if(username == null) {
+			throw  new ResponseStatusException( HttpStatus.FORBIDDEN, "Not");
+		}
+		
+		User user = userRepository.findByUsername(username);
+		if(user == null) {
+			throw  new ResponseStatusException( HttpStatus.FORBIDDEN, "Not Ad");
+		}
+		
+		if(!user.getRole().equals("Admin")) {
+			throw  new ResponseStatusException( HttpStatus.FORBIDDEN, "Not Admin");
+		}
+	
 		Iterable<Student> list = studentRepository.findAll();
 		ArrayList<StudentDTO> alist = new ArrayList<>();
 		for (Student s : list) {
@@ -45,7 +67,7 @@ public class StudentController {
 	}
 	
 	@GetMapping("/student/{id}")
-	public StudentDTO getStudent(@PathVariable("id") int id) {
+	public StudentDTO getStudent(@PathVariable("id") int id, Principal principal) {
 		Student s = studentRepository.findById(id).orElse(null);
 		if (s!=null) {
 			StudentDTO sdto = new StudentDTO(s.getStudent_id(), s.getName(), s.getEmail(), s.getStatusCode(), s.getStatus());
@@ -56,7 +78,7 @@ public class StudentController {
 	}
 //	updateStudent
 	@PutMapping("/student/{id}") 
-	public void updateStudent(@PathVariable("id")int id, @RequestBody StudentDTO sdto) {
+	public void updateStudent(@PathVariable("id")int id, @RequestBody StudentDTO sdto, Principal principal) {
 		Student s = studentRepository.findById(id).orElse(null);
 		if (s==null) {
 			throw  new ResponseStatusException( HttpStatus.NOT_FOUND, "student not found "+id);
@@ -80,7 +102,7 @@ public class StudentController {
 //	Create student
 	
 	@PostMapping("/student")
-	public int createStudent(@RequestBody StudentDTO sdto) {
+	public int createStudent(@RequestBody StudentDTO sdto, Principal princial) {
 		Student check = studentRepository.findByEmail(sdto.email());
 		if (check != null) {
 			// error.  email exists.
@@ -98,7 +120,7 @@ public class StudentController {
 //	delete student
 	
 	@DeleteMapping("/student/{id}")
-	public void deleteStudent(@PathVariable("id") int id, @RequestParam("force") Optional<String> force) {
+	public void deleteStudent(@PathVariable("id") int id, @RequestParam("force") Optional<String> force, Principal principal) {
 		Student s = studentRepository.findById(id).orElse(null);
 		if (s!=null) {
 			// are there enrollments?
@@ -116,3 +138,9 @@ public class StudentController {
 	}
 
 }
+
+//Student controller and Schedule controller
+//do same check for other methods
+//
+//Do the same for Schedule controller -check for student against student repository - check against student email (email-replace with principal )
+
