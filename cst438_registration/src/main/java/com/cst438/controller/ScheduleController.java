@@ -2,6 +2,7 @@ package com.cst438.controller;
 
 import java.util.List;
 
+import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,10 @@ import com.cst438.domain.EnrollmentRepository;
 import com.cst438.domain.ScheduleDTO;
 import com.cst438.domain.Student;
 import com.cst438.domain.StudentRepository;
+import com.cst438.domain.User;
 import com.cst438.service.GradebookService;
+
+import com.cst438.domain.UserRepository;
 @RestController
 @CrossOrigin 
 public class ScheduleController {
@@ -37,19 +41,37 @@ public class ScheduleController {
 	
 	@Autowired
 	GradebookService gradebookService;
+	
+	@Autowired
+	UserRepository userRepository;
 	/*
 	 * get current schedule for student.
 	 */
 	@GetMapping("/schedule")
-	public ScheduleDTO[] getSchedule( @RequestParam("year") int year, @RequestParam("semester") String semester ) {
+	public ScheduleDTO[] getSchedule( @RequestParam("year") int year, @RequestParam("semester") String semester, Principal principal ) {
+	String username = principal.getName();
+		
+		if(username == null) {
+			throw  new ResponseStatusException( HttpStatus.FORBIDDEN, "Empty");
+		}
+		
+		User user = userRepository.findByUsername(username);
+		if(user == null) {
+			throw  new ResponseStatusException( HttpStatus.FORBIDDEN, "Not Add");
+		}
+		
+		if(!user.getRole().equals("Admin")) {
+			throw  new ResponseStatusException( HttpStatus.FORBIDDEN, "Not Admin");
+		}
+		
 		System.out.println("/schedule called.");
 		String student_email = "test@csumb.edu";   // student's email 
-		
+	
 		Student student = studentRepository.findByEmail(student_email);
 		if (student != null) {
 			System.out.println("/schedule student "+student.getName()+" "+student.getStudent_id());
 			List<Enrollment> enrollments = enrollmentRepository.findStudentSchedule(student_email, year, semester);
-			ScheduleDTO[] sched = createSchedule(year, semester, student, enrollments);
+			ScheduleDTO[] sched = createSchedule(year, semester, student, enrollments, principal);
 			return sched;
 		} else {
 			return new ScheduleDTO[0];   // return empty schedule for unknown student.
@@ -61,7 +83,7 @@ public class ScheduleController {
 	 */
 	@PostMapping("/schedule/course/{id}")
 	@Transactional
-	public ScheduleDTO addCourse( @PathVariable int id  ) { 
+	public ScheduleDTO addCourse( @PathVariable int id, Principal principal ) { 
 		String student_email = "test@csumb.edu";   // student's email 
 		Student student = studentRepository.findByEmail(student_email);
 		Course course  = courseRepository.findById(id).orElse(null);
@@ -88,7 +110,7 @@ public class ScheduleController {
 	 */
 	@DeleteMapping("/schedule/{enrollment_id}")
 	@Transactional
-	public void dropCourse(  @PathVariable int enrollment_id  ) {
+	public void dropCourse(  @PathVariable int enrollment_id, Principal principal  ) {
 		String student_email = "test@csumb.edu";   // student's email 
 		// TODO  check that today's date is not past deadline to drop course.
 		Enrollment enrollment = enrollmentRepository.findById(enrollment_id).orElse(null);
@@ -107,7 +129,7 @@ public class ScheduleController {
 	 * a an instances of ScheduleDTO to return to front end.
 	 * This makes the front end less dependent on the details of the database.
 	 */
-	private ScheduleDTO[] createSchedule(int year, String semester, Student s, List<Enrollment> enrollments) {
+	private ScheduleDTO[] createSchedule(int year, String semester, Student s, List<Enrollment> enrollments, Principal principal) {
 		ScheduleDTO[] result = new ScheduleDTO[enrollments.size()];
 		for (int i=0; i<enrollments.size(); i++) {
 			ScheduleDTO dto =createSchedule(enrollments.get(i));
